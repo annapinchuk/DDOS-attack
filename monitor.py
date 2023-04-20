@@ -2,39 +2,46 @@ import os
 from time import sleep
 import time
 
+# initialize global variables:
 SERVER_IP = "127.0.0.1"
+FILE_NAME = "monitors_ping.txt"
 
-file = open("ip_output.txt", "a")
+#open a file in write mode in order to save the packet's data
+file = open(FILE_NAME, "a")
 
-index =0
+#define a times array - for calculating the avg time
+times = []
+
+index =1
 
 while True:
-    index+=1
-    # Pinging each IP address 4 times
     
+    # start the timer - in order to calculate the build packet time
     start = time.time()*1000
+    
+    # Pinging to the server 4 times
     response = os.popen(f"ping -c 4 {SERVER_IP} ").read()
+    
+    # after getting an answer - close the the timer
     end = time.time()*1000
 
     print(response)
+    
     # saving some ping output details to output file
     if ("Request timed out." or "unreachable") in response:
         file.write("the server didn't answer"+'\n')
     else:
+        # calculate the sent packet time
         rtt = end - start
 
-        textToFile = "packet number: " + str(index) + " rtt: " + str(rtt) + "(ms)"
+        # add the sent time to the array
+        times.append(rtt)
+
+        # add the packet data to the file
+        textToFile = "packet number: " + str(index) + " rtt: " + str(rtt) + "(ms)\n"
         file.write(textToFile)
-
-        file.write(str(SERVER_IP) + ' is up '+'\n')
+    
     sleep(5)
-
-# print output file to screen
-with open("ip_output.txt") as file:
-    output = file.read()
-    f.close()
-    print(output)
-with open("ip_output.txt", "w") as file:
-    pass
+    index+=1
 
 file.close()

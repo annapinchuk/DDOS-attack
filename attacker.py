@@ -64,7 +64,7 @@ def syn_flood():
         # after sending the packet - close the the timer
         end = time.time()*1000
         # calculate the sent packet time
-        sentTime = start - end
+        sentTime = end - start
 
         # add the sent time to the array
         times.append(sentTime)
@@ -84,5 +84,8 @@ def syn_flood():
     textToFile = "\nThe average time to send a syn packet in python is: " + \
         str(avgTime) + "(ms)"
     file.write(textToFile)
+    
+    #close the file
+    file.close()
 
 syn_flood()
