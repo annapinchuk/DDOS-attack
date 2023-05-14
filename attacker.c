@@ -11,8 +11,7 @@
 #include <stdio.h>
 #include <sys/time.h>
 
-
-#define PACKETS_NUMBER 1000000
+#define PACKETS_NUMBER 10 // TODO: change to 100000
 #define FILE_NAME "syns_result_c"
 
 char *generate_ip_address()
@@ -29,26 +28,29 @@ int main()
     struct timeval start, end;
 
     double sumTime = 0;
-
-    for (size_t i = 0; i < PACKETS_NUMBER; i++)
+    size_t index = 0;
+    for (size_t j = 0; j < 100; j++)
     {
-        char *ip_address = generate_ip_address();
-        char npingCommand[100];
-        sprintf(npingCommand, "nping --tcp --source-ip %s --seq %ld 10.0.0.8", ip_address, i);
 
-        gettimeofday(&start, NULL);
-        system(npingCommand);
-        gettimeofday(&end, NULL);
-        double timeDelta = (end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec);
+        for (size_t i = 0; i < PACKETS_NUMBER / 100; i++)
+        {
+            char *ip_address = generate_ip_address();
+            char npingCommand[100];
+            sprintf(npingCommand, "nping --tcp --source-ip %s --seq %ld 10.0.0.8", ip_address, index);
 
-        fprintf(fd,"Packet number: %ld time: %f(ms)\n", i, timeDelta);
-        sumTime += timeDelta;
+            gettimeofday(&start, NULL);
+            system(npingCommand);
+            gettimeofday(&end, NULL);
+            double timeDelta = (end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec);
 
-        free(ip_address);
+            fprintf(fd, "Packet number: %ld time: %f(ms)\n", index, timeDelta);
+            sumTime += timeDelta;
+            index++;
+            free(ip_address);
+        }
     }
-
-    double avg = sumTime/PACKETS_NUMBER;
-    fprintf(fd,"\nThe average time to send a syn packet in c is: %f\n", avg);
+    double avg = sumTime / PACKETS_NUMBER;
+    fprintf(fd, "\nThe average time to send a syn packet in c is: %f\n", avg);
     fclose(fd);
-        return 0;
+    return 0;
 }

