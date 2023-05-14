@@ -19,13 +19,16 @@ char *generate_ip_address()
 
 int main()
 {
-    char *ip_address = generate_ip_address();
-    char npingCommand[100];
-    sprintf(npingCommand, "nping --tcp --source-ip %s 10.0.0.8", ip_address);
-    printf("%s\n", npingCommand);
+    for (size_t i = 0; i < 10; i++)
+    {
+        char *ip_address = generate_ip_address();
+        char npingCommand[100];
+        sprintf(npingCommand, "nping --tcp --source-ip %s 10.0.0.8 --tcp-seq %d", ip_address, i);
+        printf("%s\n", npingCommand);
 
-    system(npingCommand);
+        system(npingCommand);
 
-    free(ip_address);
+        free(ip_address);
+    }
     return 0;
 }
