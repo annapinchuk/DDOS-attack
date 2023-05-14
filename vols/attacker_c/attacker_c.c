@@ -49,6 +49,7 @@ int main()
             free(ip_address);
         }
     }
+
     double avg = sumTime / PACKETS_NUMBER;
     fprintf(fd, "\nThe average time to send a syn packet in c is: %f\n", avg);
     fclose(fd);
