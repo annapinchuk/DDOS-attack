@@ -4,13 +4,13 @@ import time
 
 # initialize global variables:
 SERVER_IP = "127.0.0.1"
-FILE_NAME = "monitors_ping.txt"
+FILE_NAME = "syns_results_c.txt"
 
 #open a file in write mode in order to save the packet's data
 file = open(FILE_NAME, "a")
 
-#define a times array - for calculating the avg time
-times = []
+#define times - for calculating the avg time
+times = 0
 
 index =1
 
@@ -25,8 +25,6 @@ while True:
     # after getting an answer - close the the timer
     end = time.time()*1000
 
-    print(response)
-    
     # saving some ping output details to output file
     if ("Request timed out." or "unreachable") in response:
         file.write("the server didn't answer"+'\n')
@@ -34,8 +32,8 @@ while True:
         # calculate the sent packet time
         rtt = end - start
 
-        # add the sent time to the array
-        times.append(rtt)
+        # add the sent time
+        times += rtt
 
         # add the packet data to the file
         textToFile = "packet number: " + str(index) + " rtt: " + str(rtt) + "(ms)\n"
