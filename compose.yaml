@@ -1,0 +1,65 @@
+version: "3.9"
+services:
+  attacker_c:
+    build:
+      context: ./attacker_c
+    networks:
+      net:
+        ipv4_address: ${ATTACKER_c_ADDRESS}
+    depends_on:
+      - server
+    env_file:
+      - .env
+    cap_add:
+      - ALL
+    privileged: true
+    volumes:
+      - ./vols/attacker_c:/home/attacker_c/
+  attacker:
+    build:
+      context: ./attacker
+    networks:
+      net:
+        ipv4_address: ${ATTACKER_py_ADDRESS}
+    depends_on:
+      - server
+    env_file:
+      - .env
+    volumes:
+      - ./vols/attacker:/home/attacker/
+    cap_add:
+      - ALL
+    privileged: true
+  monitor:
+    build:
+      context: ./monitor
+    networks:
+      net:
+        ipv4_address: ${MONITOR_ADDRESS}
+    depends_on:
+      - attacker
+    env_file:
+      - .env
+    volumes:
+      - ./vols/monitor:/home/monitor/
+    cap_add:
+      - ALL
+    privileged: true
+  server:
+    build:
+      context: ./server
+    ports: ["8080:80"] # expose port 8080 from the container to port SERVER_PORT on the host
+    networks:
+      net:
+        ipv4_address: ${APACHE_ADDRESS}
+    cap_add:
+      - ALL
+    privileged: true
+    volumes:
+      - ./vols/server:/home/server/
+networks:
+  net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.0.0/16
