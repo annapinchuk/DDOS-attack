@@ -71,7 +71,7 @@ def syn_flood():
 
         # add the packet data to the file
         textToFile = "Packet number: " + \
-            str(index) + "Sent packet time: " + str(sentTime) + "(ms)\n"
+            str(index) + " time: " + str(sentTime) + "(ms)\n"
         file.write(textToFile)
         
     # calculate the avg time that took to send a packet
