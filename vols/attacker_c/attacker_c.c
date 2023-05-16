@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <sys/time.h>
 
-#define PACKETS_NUMBER 10 // TODO: change to 100000
+#define PACKETS_NUMBER 10000 // TODO: change to 100000
 #define FILE_NAME "syns_result_c"
 
 char *generate_ip_address()
@@ -32,11 +32,11 @@ int main()
     for (size_t j = 0; j < 100; j++)
     {
 
-        for (size_t i = 0; i < PACKETS_NUMBER / 100; i++)
+        for (size_t i = 0; i < PACKETS_NUMBER ; i++)
         {
             char *ip_address = generate_ip_address();
             char npingCommand[100];
-            sprintf(npingCommand, "nping --tcp --source-ip %s --seq %ld 10.0.0.8", ip_address, index);
+            sprintf(npingCommand, "nping --tcp -c 1 -H -N --quiet --source-ip %s --seq %ld 10.0.0.8", ip_address, index);
 
             gettimeofday(&start, NULL);
             system(npingCommand);
@@ -48,6 +48,7 @@ int main()
             index++;
             free(ip_address);
         }
+        printf("Done with %ld\n", index);
     }
 
     double avg = sumTime / PACKETS_NUMBER;
