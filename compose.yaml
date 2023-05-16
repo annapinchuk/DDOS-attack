@@ -17,7 +17,7 @@ services:
       - ./vols/attacker_c:/home/attacker_c/
   attacker:
     build:
-      context: ./attacker_py
+      context: ./attacker
     networks:
       net:
         ipv4_address: ${ATTACKER_py_ADDRESS}
@@ -26,7 +26,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./vols/attacker_py:/home/attacker_py/
+      - ./vols/attacker:/home/attacker/
     cap_add:
       - ALL
     privileged: true
