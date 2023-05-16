@@ -1,5 +1,6 @@
 FROM gcc:bullseye
 WORKDIR /app
+# add nping 
 RUN apt-get update && apt-get install -y \
     iputils-ping \
     net-tools \
