@@ -1,0 +1,12 @@
+Packet number: 0 time: 93.577880859375(ms)
+Packet number: 1 time: 35.4560546875(ms)
+Packet number: 2 time: 43.72265625(ms)
+Packet number: 3 time: 44.15966796875(ms)
+Packet number: 4 time: 44.2734375(ms)
+Packet number: 5 time: 44.842529296875(ms)
+Packet number: 6 time: 44.223388671875(ms)
+Packet number: 7 time: 42.959716796875(ms)
+Packet number: 8 time: 39.5556640625(ms)
+Packet number: 9 time: 49.6455078125(ms)
+
+The average time to send a syn packet in python is: 48.241650390625(ms)
