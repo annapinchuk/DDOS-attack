@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 
 
 # Read data from the text file
-with open('syns_results_py.txt', 'r') as file:
+with open('syns_results_p.txt', 'r') as file:
     lines = file.readlines()
 
 # Extract the x and y values from the lines
@@ -22,7 +22,7 @@ ax.plot(x_values, y_values)
 
 plt.xlabel('Packet send time (ms)')
 plt.ylabel('Packet number')
-plt.title('DDOS using python')
+plt.title('DDOS using python - SYN packets')
 
 # Make the y axis as logarithmic scale
 ax.set_yscale('log')

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 
 
 # Read data from the text file
-with open('monitors_ping_py.txt', 'r') as file:
+with open('pings_results_p.txt', 'r') as file:
     lines = file.readlines()
 
 # Extract the x and y values from the lines
@@ -22,9 +22,9 @@ ax.plot(x_values, y_values)
 
 plt.xlabel('Packets RTT (ms)')
 plt.ylabel('Packet number')
-plt.title('DDOS using python')
+plt.title('DDOS using python - 4 PING  packets')
 
 # Make the y axis as logarithmic scale
 ax.set_yscale('log')
 
-fig.savefig("Monitor_pkts_p.png")
+fig.savefig("Pings_p.png")
